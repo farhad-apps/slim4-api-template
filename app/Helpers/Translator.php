@@ -20,10 +20,10 @@ class Translator
     public static function trans(string $key, ?string $locale = null, array $replace = []): string
     {
         $locale = self::getLocale($locale);
-        $path = __DIR__ . '/../../lang/' . $locale . '/messages.php';
+        $path = __DIR__ . '/../Lang/' . $locale . '/messages.php';
 
         if (!file_exists($path)) {
-            $path = __DIR__ . '/../../lang/en/messages.php';
+            $path = __DIR__ . '/../Lang/en/messages.php';
         }
 
         $messages = require $path;
