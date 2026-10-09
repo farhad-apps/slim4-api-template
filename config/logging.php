@@ -1,8 +1,13 @@
 <?php
 
 return [
-    'name' => 'slim-api',
-    'path' => __DIR__ . '/../storage/logs/app.log',
-    'level' => \Monolog\Logger::DEBUG,
-    'max_files' => 30,
+    'default' => env('LOG_CHANNEL', 'default'),
+    'channels' => [
+        'default' => [
+            'name' => 'slim-api',
+            'path' => PATH_LOGS . DS . 'app.log',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'max_files' => 30,
+        ],
+    ],
 ];
