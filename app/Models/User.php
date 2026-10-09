@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Model
 {
@@ -12,6 +14,8 @@ class User extends Model
         'name',
         'email',
         'password',
+        'role',
+        'reseller_id',
     ];
 
     protected $hidden = [
@@ -19,4 +23,20 @@ class User extends Model
     ];
 
     public $timestamps = true;
+
+    // روابط
+    public function reseller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reseller_id');
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(User::class, 'reseller_id');
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'user_id');
+    }
 }
