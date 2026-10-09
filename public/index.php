@@ -8,8 +8,8 @@ if (file_exists(__DIR__ . '/../.env')) {
 }
 
 define('PATH', __DIR__ . '/..');
-require __DIR__ . '/constants.php';
-require __DIR__ . '/helpers.php';
+require __DIR__ . '/../bootstrap/constants.php';
+require __DIR__ . '/../bootstrap/helpers.php';
 
 use Slim\Factory\AppFactory;
 use App\Exceptions\ApiException;
@@ -21,32 +21,8 @@ $app = AppFactory::create();
 
 $app->addErrorMiddleware(true, true, true);
 
-$app->get('/', function ($request, $response) {
-    $logger = logger();
-    $logger->info('Root route accessed', ['ip' => getIpAddress()]);
-
-    $response->getBody()->write(json_encode([
-        'status' => 'success',
-        'message' => 'API is running',
-        'timestamp' => now(),
-    ]));
-
-    return $response->withHeader('Content-Type', 'application/json');
-});
-
-$routeFiles = [
-    __DIR__ . '/../app/Routes/api.php',
-    __DIR__ . '/../app/Routes/admin.php',
-    __DIR__ . '/../app/Routes/reseller.php',
-    __DIR__ . '/../app/Routes/customer.php',
-];
-
-foreach ($routeFiles as $routeFile) {
-    if (file_exists($routeFile)) {
-        $routeLoader = require $routeFile;
-        $routeLoader($app);
-    }
-}
+$routeLoader = require __DIR__ . '/../app/Routes/index.php';
+$routeLoader($app);
 
 $app->add(function ($request, $handler) {
     $logger = logger();

@@ -1,15 +1,14 @@
 <?php
 
 use Slim\App;
-use App\Controllers\Reseller;
-use App\Middleware\ResellerMiddleware;
 
 return function (App $app) {
-    // Reseller Routes
-    $app->group('/reseller', function ($group) {
-        // Customers
-        $group->get('/users', [Reseller\UserController::class, 'index']);
-        $group->get('/users/{id}', [Reseller\UserController::class, 'show']);
-        $group->post('/users', [Reseller\UserController::class, 'store']);
-    })->add(new ResellerMiddleware()); // فقط Reseller می‌تونه بره
+    $app->get('/reseller', function ($request, $response) {
+        $response->getBody()->write(json_encode([
+            'status' => 'success',
+            'message' => 'Reseller routes loaded',
+        ]));
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 };
