@@ -2,18 +2,19 @@
 
 namespace App\Requests;
 
-use Illuminate\Translation\ArrayLoader;
-use Illuminate\Translation\Translator;
-use Illuminate\Validation\Factory as ValidatorFactory;
-use Illuminate\Filesystem\Filesystem;
 use App\Exceptions\ApiException;
+use App\Helpers\Translator;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Translation\ArrayLoader;
+use Illuminate\Translation\Translator as IlluminateTranslator;
+use Illuminate\Validation\Factory as ValidatorFactory;
 
 class UserRequest
 {
     public static function validateStore(array $data): array
     {
         $loader = new ArrayLoader();
-        $translator = new Translator($loader, 'en');
+        $translator = new IlluminateTranslator($loader, Translator::getLocale());
         $factory = new ValidatorFactory($translator, new Filesystem());
 
         $validator = $factory->make($data, [
@@ -21,19 +22,19 @@ class UserRequest
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
         ], [
-            'name.required' => 'نام الزامی است.',
-            'name.min' => 'نام باید حداقل 2 کاراکتر باشد.',
-            'name.max' => 'نام نمی‌تواند بیش از 100 کاراکتر باشد.',
-            'email.required' => 'ایمیل الزامی است.',
-            'email.email' => 'ایمیل معتبر نیست.',
-            'email.unique' => 'این ایمیل قبلاً ثبت شده است.',
-            'password.required' => 'کلمه عبور الزامی است.',
-            'password.min' => 'کلمه عبور باید حداقل 8 کاراکتر باشد.',
+            'name.required' => Translator::trans('validation.required_name'),
+            'name.min' => Translator::trans('validation.name_min'),
+            'name.max' => Translator::trans('validation.name_max'),
+            'email.required' => Translator::trans('validation.email_required'),
+            'email.email' => Translator::trans('validation.email_invalid'),
+            'email.unique' => Translator::trans('validation.email_unique'),
+            'password.required' => Translator::trans('validation.password_required'),
+            'password.min' => Translator::trans('validation.password_min'),
         ]);
 
         if ($validator->fails()) {
             throw new ApiException(
-                'خطای اعتبارسنجی',
+                Translator::trans('error.validation'),
                 422,
                 $validator->errors()->toArray()
             );
@@ -45,7 +46,7 @@ class UserRequest
     public static function validateUpdate(array $data, int $userId): array
     {
         $loader = new ArrayLoader();
-        $translator = new Translator($loader, 'en');
+        $translator = new IlluminateTranslator($loader, Translator::getLocale());
         $factory = new ValidatorFactory($translator, new Filesystem());
 
         $validator = $factory->make($data, [
@@ -53,16 +54,16 @@ class UserRequest
             'email' => ['sometimes', 'email', 'unique:users,email,' . $userId],
             'password' => ['sometimes', 'string', 'min:8'],
         ], [
-            'name.min' => 'نام باید حداقل 2 کاراکتر باشد.',
-            'name.max' => 'نام نمی‌تواند بیش از 100 کاراکتر باشد.',
-            'email.email' => 'ایمیل معتبر نیست.',
-            'email.unique' => 'این ایمیل قبلاً ثبت شده است.',
-            'password.min' => 'کلمه عبور باید حداقل 8 کاراکتر باشد.',
+            'name.min' => Translator::trans('validation.name_min'),
+            'name.max' => Translator::trans('validation.name_max'),
+            'email.email' => Translator::trans('validation.email_invalid'),
+            'email.unique' => Translator::trans('validation.email_unique'),
+            'password.min' => Translator::trans('validation.password_min'),
         ]);
 
         if ($validator->fails()) {
             throw new ApiException(
-                'خطای اعتبارسنجی',
+                Translator::trans('error.validation'),
                 422,
                 $validator->errors()->toArray()
             );

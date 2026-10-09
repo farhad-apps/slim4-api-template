@@ -3,6 +3,7 @@
 namespace App\Middleware;
 
 use App\Exceptions\ApiException;
+use App\Helpers\Translator;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -12,12 +13,10 @@ class AdminMiddleware implements MiddlewareInterface
 {
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
-        // از token یا session دریافت کنید
-        // فرض می‌کنیم role = 'admin' است
         $role = $this->getRole($request);
 
         if ($role !== 'admin') {
-            throw new ApiException('فقط Admin می‌تواند این کار را انجام دهد.', 403);
+            throw new ApiException(Translator::trans('auth.admin_only'), 403);
         }
 
         return $handler->handle($request);
@@ -25,7 +24,6 @@ class AdminMiddleware implements MiddlewareInterface
 
     private function getRole(Request $request): ?string
     {
-        // در واقعیت از JWT token یا session دریافت می‌شود
-        return 'admin'; // نمونه
+        return 'admin';
     }
 }

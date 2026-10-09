@@ -1,56 +1,73 @@
 # Slim 4 API Template
 
-یک ساختار تمیز و قابل گسترش برای API با Slim 4، Illuminate ORM و Validation
+A clean and scalable API structure for Slim 4, using Eloquent ORM and validation.
 
-## ساختار پروژه
+## Project structure
 
-```
+```text
 project-root/
 ├── app/
-│   ├── Controllers/       # Controller ها
-│   │   ├── BaseController.php
-│   │   └── UserController.php
-│   ├── Models/           # Eloquent Models
-│   │   └── User.php
-│   ├── Requests/         # Validation classes
-│   │   └── UserRequest.php
-│   ├── Services/         # Business Logic
+│   ├── Controllers/
+│   │   ├── Admin/
+│   │   │   └── UserController.php
+│   │   ├── Reseller/
+│   │   │   └── UserController.php
+│   │   └── Customer/
+│   │       └── ProfileController.php
+│   ├── Middleware/
+│   │   ├── AdminMiddleware.php
+│   │   ├── ResellerMiddleware.php
+│   │   └── CustomerMiddleware.php
+│   ├── Policies/
+│   │   └── UserPolicy.php
+│   ├── Services/
 │   │   └── UserService.php
-│   ├── Exceptions/       # Custom Exceptions
-│   │   └── ApiException.php
-│   ├── Helpers/          # Helper classes
-│   │   └── ResponseHelper.php
-│   └── Routes/           # Routes definition
-│       └── api.php
-├── config/               # Configuration files
-│   ├── database.php
-│   └── app.php
-├── bootstrap/            # Bootstrap files
+│   ├── Helpers/
+│   │   └── Translator.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   └── Order.php
+│   └── Routes/
+���       ├── admin.php
+│       ├── reseller.php
+│       └── customer.php
+├── lang/
+│   ├── en/
+│   │   └── messages.php
+│   └── fa/
+│       └── messages.php
+├── bootstrap/
 │   └── container.php
-├── public/               # Public entry point
+├── config/
+│   ├── app.php
+│   └── database.php
+├── public/
 │   └── index.php
 ├── composer.json
 ├── .env.example
+├── .gitignore
 └── README.md
 ```
 
-## نصب
+## Features
 
-### 1. نصب وابستگی‌ها
+- Slim 4 routing and dependency injection
+- Eloquent ORM integration
+- Validation with Illuminate Validation
+- Multi-role architecture: admin, reseller, customer
+- Policy-based authorization
+- Locale-aware message system with English and Persian support
+- Service layer for business logic
+- Middleware-based role checks
+
+## Installation
 
 ```bash
 composer install
-```
-
-### 2. کپی فایل .env
-
-```bash
 cp .env.example .env
 ```
 
-### 3. تنظیم دیتابیس
-
-دیتابیس خود را در فایل `.env` تنظیم کنید:
+Configure the database in `.env`:
 
 ```env
 DB_CONNECTION=mysql
@@ -61,116 +78,61 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### 4. ایجاد جداول
+## Locales
 
-برای ایجاد جدول users، یک فایل migration بسازید یا مستقیماً در دیتابیس اجرا کنید:
+The application supports multiple locales using the `Accept-Language` header or the `locale` variable when calling the translator manually.
 
-```sql
-CREATE TABLE users (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+Examples:
+
+```bash
+curl -H "Accept-Language: en" http://localhost:8000/admin/users
+curl -H "Accept-Language: fa" http://localhost:8000/admin/users
 ```
 
-## اجرای پروژه
+Messages are stored in:
+
+- `lang/en/messages.php`
+- `lang/fa/messages.php`
+
+## Run
 
 ```bash
 php -S localhost:8000 -t public
 ```
 
-سپس به آدرس `http://localhost:8000` بروید.
+## Example routes
 
-## API Endpoints
+```text
+GET /admin/users
+GET /admin/users/{id}
+POST /admin/users
+PUT /admin/users/{id}
+DELETE /admin/users/{id}
 
-### لیست تمام کاربران
-```
-GET /api/users
-```
+GET /reseller/users
+POST /reseller/users
 
-### دریافت یک کاربر
-```
-GET /api/users/{id}
-```
-
-### ایجاد کاربر جدید
-```
-POST /api/users
+GET /customer/profile
+PUT /customer/profile
 ```
 
-**Body:**
+## Example response
+
 ```json
 {
-    "name": "علی محمدی",
-    "email": "ali@example.com",
-    "password": "secure_password123"
+  "status": "success",
+  "message": "User list.",
+  "data": []
 }
 ```
 
-### بروزرسانی کاربر
-```
-PUT /api/users/{id}
-```
+## Notes
 
-**Body:**
-```json
-{
-    "name": "علی محمدی",
-    "email": "ali.new@example.com"
-}
-```
+- Controllers are grouped by role to keep code readable.
+- Services contain the business logic and shared queries.
+- Middleware checks access by role.
+- Policies enforce permissions for each user type.
 
-### حذف کاربر
-```
-DELETE /api/users/{id}
-```
-
-## ویژگی‌ها
-
-✅ Slim 4 Framework
-✅ Illuminate Database (Eloquent ORM)
-✅ Illuminate Validation
-✅ PHP-DI Container
-✅ Custom Exception Handling
-✅ Response Helper
-✅ Service Layer Pattern
-✅ پیام‌های خطا به فارسی
-
-## نمونه Response
-
-### موفقیت‌آمیز
-```json
-{
-    "status": "success",
-    "message": "لیست کاربران",
-    "data": [
-        {
-            "id": 1,
-            "name": "علی محمدی",
-            "email": "ali@example.com",
-            "created_at": "2024-01-01T12:00:00.000000Z",
-            "updated_at": "2024-01-01T12:00:00.000000Z"
-        }
-    ]
-}
-```
-
-### خطا
-```json
-{
-    "status": "error",
-    "message": "خطای اعتبارسنجی",
-    "errors": {
-        "email": [
-            "ایمیل معتبر نیست."
-        ]
-    }
-}
-```
-
-## لیسنس
+## License
 
 MIT

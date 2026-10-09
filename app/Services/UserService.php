@@ -2,37 +2,29 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Order;
 use App\Exceptions\ApiException;
+use App\Helpers\Translator;
+use App\Models\Order;
+use App\Models\User;
 
 class UserService
 {
-    /**
-     * دریافت تمام کاربران
-     */
     public function getAllUsers()
     {
         return User::all();
     }
 
-    /**
-     * دریافت کاربر به ID
-     */
     public function getUserById(int $id)
     {
         $user = User::find($id);
 
         if (!$user) {
-            throw new ApiException('کاربر یافت نشد.', 404);
+            throw new ApiException(Translator::trans('user.not_found'), 404);
         }
 
         return $user;
     }
 
-    /**
-     * دریافت کاربران یک Reseller
-     */
     public function getUsersByReseller(int $resellerId)
     {
         return User::where('reseller_id', $resellerId)
@@ -40,21 +32,9 @@ class UserService
             ->get();
     }
 
-    /**
-     * Query پیچیده: آمار Resellers
-     * Join با Orders و محاسبه تعداد، مجموع، و میانگین
-     */
     public function getResellerStatistics()
     {
         return User::where('role', 'reseller')
-            ->with([
-                'customers' => function ($query) {
-                    $query->count(); // تعداد مشتریان
-                },
-                'orders' => function ($query) {
-                    $query->where('status', 'completed'); // فقط Order های تکمیل شده
-                }
-            ])
             ->leftJoin('orders', function ($join) {
                 $join->on('users.id', '=', 'orders.user_id')
                     ->where('orders.status', '=', 'completed');
@@ -68,13 +48,6 @@ class UserService
             ->get();
     }
 
-    /**
-     * Query پیچیده: کاربران بر اساس شروط متعدد
-     * دریافت Customers که:
-     * - حداقل 5 Order داشتند
-     * - مجموع فروش بیش از 1000
-     * - در ماه آخر خرید کردند
-     */
     public function getHighValueCustomers()
     {
         return User::where('role', 'customer')
@@ -92,18 +65,14 @@ class UserService
             ->get();
     }
 
-    /**
-     * ایجاد کاربر جدید
-     */
     public function createUser(array $data): User
     {
-        // Validation ساده
         if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
-            throw new ApiException('نام، ایمیل و کلمه عبور الزامی هستند.', 422);
+            throw new ApiException(Translator::trans('user.invalid_payload'), 422);
         }
 
         if (User::where('email', $data['email'])->exists()) {
-            throw new ApiException('این ایمیل قبلاً ثبت شده است.', 422);
+            throw new ApiException(Translator::trans('user.email_exists'), 422);
         }
 
         $user = User::create([
@@ -117,9 +86,6 @@ class UserService
         return $user;
     }
 
-    /**
-     * بروزرسانی کاربر
-     */
     public function updateUser(int $id, array $data): User
     {
         $user = $this->getUserById($id);
@@ -133,9 +99,6 @@ class UserService
         return $user;
     }
 
-    /**
-     * حذف کاربر
-     */
     public function deleteUser(int $id): bool
     {
         $user = $this->getUserById($id);

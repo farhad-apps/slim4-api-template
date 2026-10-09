@@ -3,6 +3,7 @@
 namespace App\Middleware;
 
 use App\Exceptions\ApiException;
+use App\Helpers\Translator;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -15,7 +16,7 @@ class ResellerMiddleware implements MiddlewareInterface
         $role = $this->getRole($request);
 
         if ($role !== 'reseller') {
-            throw new ApiException('فقط Reseller می‌تواند این کار را انجام دهد.', 403);
+            throw new ApiException(Translator::trans('auth.reseller_only'), 403);
         }
 
         return $handler->handle($request);
@@ -23,6 +24,6 @@ class ResellerMiddleware implements MiddlewareInterface
 
     private function getRole(Request $request): ?string
     {
-        return 'reseller'; // نمونه
+        return 'reseller';
     }
 }

@@ -3,9 +3,10 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Services\UserService;
-use App\Policies\UserPolicy;
 use App\Exceptions\ApiException;
+use App\Helpers\Translator;
+use App\Policies\UserPolicy;
+use App\Services\UserService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -23,10 +24,9 @@ class UserController extends BaseController
     public function index(Request $request, Response $response): Response
     {
         try {
-            // Admin می‌تونه همه کاربران رو ببینه
             $users = $this->userService->getAllUsers();
 
-            return $this->success($response, $users->toArray(), 'لیست تمام کاربران', 200);
+            return $this->success($response, $users->toArray(), Translator::trans('user.list'), 200);
         } catch (\Throwable $e) {
             return $this->error($response, $e->getMessage(), [], 500);
         }
@@ -35,10 +35,9 @@ class UserController extends BaseController
     public function getResellerStats(Request $request, Response $response): Response
     {
         try {
-            // Query پیچیده: تمام Resellers با تعداد Orders و مجموع فروش
             $stats = $this->userService->getResellerStatistics();
 
-            return $this->success($response, $stats, 'آمار Resellers', 200);
+            return $this->success($response, $stats, 'Reseller statistics', 200);
         } catch (\Throwable $e) {
             return $this->error($response, $e->getMessage(), [], 500);
         }
@@ -50,12 +49,11 @@ class UserController extends BaseController
             $userId = (int) $args['id'];
             $user = $this->userService->getUserById($userId);
 
-            // Check authorization
             if (!$this->userPolicy->view(null, $user, 'admin')) {
-                throw new ApiException('شما اجازه دسترسی ندارید.', 403);
+                throw new ApiException(Translator::trans('auth.access_denied'), 403);
             }
 
-            return $this->success($response, $user->toArray(), 'جزئیات کاربر', 200);
+            return $this->success($response, $user->toArray(), Translator::trans('user.profile'), 200);
         } catch (ApiException $e) {
             return $this->error($response, $e->getMessage(), [], $e->getStatus());
         } catch (\Throwable $e) {
@@ -67,11 +65,10 @@ class UserController extends BaseController
     {
         try {
             $data = $request->getParsedBody();
-            // Admin می‌تونه هر نقش رو assign کنه
             $data['role'] = $data['role'] ?? 'customer';
             $user = $this->userService->createUser($data);
 
-            return $this->success($response, $user->toArray(), 'کاربر با موفقیت ایجاد شد.', 201);
+            return $this->success($response, $user->toArray(), Translator::trans('user.created'), 201);
         } catch (ApiException $e) {
             return $this->error($response, $e->getMessage(), [], $e->getStatus());
         } catch (\Throwable $e) {
@@ -86,7 +83,7 @@ class UserController extends BaseController
             $data = $request->getParsedBody();
             $user = $this->userService->updateUser($userId, $data);
 
-            return $this->success($response, $user->toArray(), 'کاربر بروزرسانی شد.', 200);
+            return $this->success($response, $user->toArray(), Translator::trans('user.updated'), 200);
         } catch (ApiException $e) {
             return $this->error($response, $e->getMessage(), [], $e->getStatus());
         } catch (\Throwable $e) {
@@ -100,7 +97,7 @@ class UserController extends BaseController
             $userId = (int) $args['id'];
             $this->userService->deleteUser($userId);
 
-            return $this->success($response, [], 'کاربر حذف شد.', 200);
+            return $this->success($response, [], Translator::trans('user.deleted'), 200);
         } catch (ApiException $e) {
             return $this->error($response, $e->getMessage(), [], $e->getStatus());
         } catch (\Throwable $e) {
