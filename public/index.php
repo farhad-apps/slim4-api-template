@@ -2,15 +2,18 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Dotenv\Dotenv;
+if (file_exists(__DIR__ . '/../.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+}
+
+define('PATH', __DIR__ . '/..');
+require __DIR__ . '/constants.php';
+require __DIR__ . '/helpers.php';
+
 use Slim\Factory\AppFactory;
 use App\Exceptions\ApiException;
 use App\Helpers\ResponseHelper;
-
-if (file_exists(__DIR__ . '/../.env')) {
-    $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
-    $dotenv->load();
-}
 
 $container = require __DIR__ . '/../bootstrap/container.php';
 AppFactory::setContainer($container);
@@ -19,12 +22,13 @@ $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
 
 $app->get('/', function ($request, $response) {
-    $logger = $this->get('logger');
-    $logger->info('Root route accessed');
+    $logger = logger();
+    $logger->info('Root route accessed', ['ip' => getIpAddress()]);
 
     $response->getBody()->write(json_encode([
         'status' => 'success',
         'message' => 'API is running',
+        'timestamp' => now(),
     ]));
 
     return $response->withHeader('Content-Type', 'application/json');
@@ -45,10 +49,11 @@ foreach ($routeFiles as $routeFile) {
 }
 
 $app->add(function ($request, $handler) {
-    $logger = $this->get('logger');
+    $logger = logger();
     $logger->info('Request received', [
         'method' => $request->getMethod(),
         'uri' => (string) $request->getUri(),
+        'ip' => getIpAddress(),
     ]);
 
     try {
@@ -76,6 +81,7 @@ $app->add(function ($request, $handler) {
             'message' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
+            'ip' => getIpAddress(),
         ]);
 
         $response = $handler->handle($request)->withStatus(500);
